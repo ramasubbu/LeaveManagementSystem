@@ -1,4 +1,4 @@
-@page "/"
+@page "/login"
 @using LeaveManagementPortal.Services
 @using System.ComponentModel.DataAnnotations
 @inject AuthenticationService AuthService
@@ -6,7 +6,7 @@
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Login - Leave Management Portal</PageTitle>
-
+<AuthCheck />
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
     <div class="container">
         <div class="row justify-content-center">
@@ -97,26 +97,6 @@
     private string errorMessage = string.Empty;
     private bool isLoading = false;
 
-    protected async override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Check if user is already authenticated (stored in session storage)
-            try
-            {
-                var isAuthenticated = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "isAuthenticated");
-                if (!string.IsNullOrEmpty(isAuthenticated) || isAuthenticated == "true")
-                {
-                    Navigation.NavigateTo("/home", forceLoad: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Session storage not available or error, continue with login
-            }
-        }
-    }
-
     private async Task HandleLogin()
     {
         try
@@ -135,7 +115,7 @@
                 await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "username", loginModel.Username);
                 
                 // Navigate to home page
-                Navigation.NavigateTo("/home", forceLoad: true);
+                Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {

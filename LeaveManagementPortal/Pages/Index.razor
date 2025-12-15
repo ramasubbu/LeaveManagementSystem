@@ -1,4 +1,4 @@
-﻿@page "/home"
+﻿@page "/"
 @using LeaveManagementPortal.Models
 @using LeaveManagementPortal.Services
 @inject EmployeeService EmployeeService
@@ -9,7 +9,7 @@
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Leave Management Portal</PageTitle>
-
+<AuthCheck />
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
@@ -305,21 +305,6 @@
         // Check authentication
         if (firstRender)
         {
-            try
-            {
-                var isAuthenticated = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "isAuthenticated");
-                if (string.IsNullOrEmpty(isAuthenticated) && isAuthenticated != "true")
-                {
-                    Navigation.NavigateTo("/");
-                    return;
-                }
-            }
-            catch
-            {
-                Navigation.NavigateTo("/");
-                return;
-            }
-
             await LoadData();
         }
     }
@@ -386,11 +371,11 @@
         try
         {
             await JSRuntime.InvokeVoidAsync("sessionStorage.clear");
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/login", forceLoad: true);
         }
         catch
         {
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/logout", forceLoad: true);
         }
     }
 

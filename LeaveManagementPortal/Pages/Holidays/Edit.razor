@@ -6,7 +6,7 @@
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Edit Holiday</PageTitle>
-
+<AuthCheck />
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
@@ -204,22 +204,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Check authentication
-        try
-        {
-            var isAuthenticated = await JSRuntime.InvokeAsync<bool>("sessionStorage.getItem", "isAuthenticated");
-            if (!isAuthenticated)
-            {
-                Navigation.NavigateTo("/");
-                return;
-            }
-        }
-        catch
-        {
-            Navigation.NavigateTo("/");
-            return;
-        }
-
         await LoadHoliday();
     }
 

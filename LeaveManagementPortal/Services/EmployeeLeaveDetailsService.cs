@@ -230,5 +230,36 @@ namespace LeaveManagementPortal.Services
             var leaves = await _employeeLeaveDetails.Find(filter).ToListAsync();
             return leaves.Sum(l => l.TotalDays);
         }
+
+        public async Task<List<EmployeeLeaveDetails>> GetEmployeeLeavesInDateRangeAsync(string employeeId, DateTime startDate, DateTime endDate)
+        {
+            var filter = Builders<EmployeeLeaveDetails>.Filter.And(
+                Builders<EmployeeLeaveDetails>.Filter.Eq(x => x.EmployeeId, employeeId),
+                Builders<EmployeeLeaveDetails>.Filter.Eq(x => x.IsActive, true),
+                Builders<EmployeeLeaveDetails>.Filter.Or(
+                    Builders<EmployeeLeaveDetails>.Filter.And(
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDate, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, endDate)
+                    ),
+                    Builders<EmployeeLeaveDetails>.Filter.And(
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDate, endDate)
+                    ),
+                    Builders<EmployeeLeaveDetails>.Filter.And(
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, endDate)
+                    )
+                )
+            );
+
+            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDate).ToListAsync();
+            
+            foreach (var detail in leaveDetails)
+            {
+                detail.Employee = await _employeeService.GetByIdAsync(detail.EmployeeId);
+            }
+            
+            return leaveDetails;
+        }
     }
 }

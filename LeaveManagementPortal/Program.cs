@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using LeaveManagementPortal.Models;
 using LeaveManagementPortal.Services;
 
@@ -22,6 +24,11 @@ builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<EmployeeProjectDetailsService>();
 builder.Services.AddScoped<EmployeeLeaveDetailsService>();
 builder.Services.AddScoped<EmployeeProjectMappingService>();
+
+// Add new services
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<HolidayService>();
+builder.Services.AddScoped<WorkHoursService>();
 
 var app = builder.Build();
 

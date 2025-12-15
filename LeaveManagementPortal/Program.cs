@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using LeaveManagementPortal.Models;
 using LeaveManagementPortal.Services;
 
@@ -36,12 +34,17 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseRouting();
 
+// Map Blazor Hub first
 app.MapBlazorHub();
+
+// Map Razor Pages
+app.MapRazorPages();
+
+// Map fallback to the _Host page for all unmatched routes
 app.MapFallbackToPage("/_Host");
 
 app.Run();

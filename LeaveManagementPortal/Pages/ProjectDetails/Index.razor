@@ -59,9 +59,6 @@
                                     <tr>
                                         <th>Project Code</th>
                                         <th>Project Name</th>
-                                        <th>Employee</th>
-                                        <th>Role</th>
-                                        <th>Allocation %</th>
                                         <th>Start Date</th>
                                         <th>End Date</th>
                                         <th>Status</th>
@@ -74,18 +71,6 @@
                                         <tr>
                                             <td>@detail.ProjectCode</td>
                                             <td>@detail.ProjectName</td>
-                                            <td>
-                                                @if (detail.Employee != null)
-                                                {
-                                                    <span>@detail.Employee.FullName (@detail.Employee.EmployeeCode)</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-warning">Employee not found</span>
-                                                }
-                                            </td>
-                                            <td>@detail.Role</td>
-                                            <td>@detail.AllocationPercentage%</td>
                                             <td>@detail.StartDate.ToString("yyyy-MM-dd")</td>
                                             <td>
                                                 @if (detail.EndDate.HasValue)

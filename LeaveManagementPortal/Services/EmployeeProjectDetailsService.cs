@@ -21,11 +21,6 @@ namespace LeaveManagementPortal.Services
         {
             var projectDetails = await _employeeProjectDetails.Find(x => x.IsActive).ToListAsync();
             
-            // Populate employee information
-            foreach (var detail in projectDetails)
-            {
-                detail.Employee = await _employeeService.GetByIdAsync(detail.EmployeeId);
-            }
             
             return projectDetails;
         }
@@ -34,24 +29,8 @@ namespace LeaveManagementPortal.Services
         {
             var projectDetail = await _employeeProjectDetails.Find(x => x.Id == id && x.IsActive).FirstOrDefaultAsync();
             
-            if (projectDetail != null)
-            {
-                projectDetail.Employee = await _employeeService.GetByIdAsync(projectDetail.EmployeeId);
-            }
             
             return projectDetail;
-        }
-
-        public async Task<List<EmployeeProjectDetails>> GetByEmployeeIdAsync(string employeeId)
-        {
-            var projectDetails = await _employeeProjectDetails.Find(x => x.EmployeeId == employeeId && x.IsActive).ToListAsync();
-            
-            foreach (var detail in projectDetails)
-            {
-                detail.Employee = await _employeeService.GetByIdAsync(detail.EmployeeId);
-            }
-            
-            return projectDetails;
         }
 
         public async Task<List<EmployeeProjectDetails>> SearchAsync(string searchTerm)
@@ -61,17 +40,11 @@ namespace LeaveManagementPortal.Services
                 Builders<EmployeeProjectDetails>.Filter.Or(
                     Builders<EmployeeProjectDetails>.Filter.Regex(x => x.ProjectCode, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
                     Builders<EmployeeProjectDetails>.Filter.Regex(x => x.ProjectName, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
-                    Builders<EmployeeProjectDetails>.Filter.Regex(x => x.Role, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
                     Builders<EmployeeProjectDetails>.Filter.Regex(x => x.ProjectManager, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i"))
                 )
             );
 
             var projectDetails = await _employeeProjectDetails.Find(filter).ToListAsync();
-            
-            foreach (var detail in projectDetails)
-            {
-                detail.Employee = await _employeeService.GetByIdAsync(detail.EmployeeId);
-            }
             
             return projectDetails;
         }
@@ -101,7 +74,6 @@ namespace LeaveManagementPortal.Services
         public async Task<bool> IsProjectCodeUniqueForEmployeeAsync(string employeeId, string projectCode, string? excludeId = null)
         {
             var filter = Builders<EmployeeProjectDetails>.Filter.And(
-                Builders<EmployeeProjectDetails>.Filter.Eq(x => x.EmployeeId, employeeId),
                 Builders<EmployeeProjectDetails>.Filter.Eq(x => x.ProjectCode, projectCode),
                 Builders<EmployeeProjectDetails>.Filter.Eq(x => x.IsActive, true)
             );
@@ -129,11 +101,6 @@ namespace LeaveManagementPortal.Services
             );
 
             var projectDetails = await _employeeProjectDetails.Find(filter).ToListAsync();
-            
-            foreach (var detail in projectDetails)
-            {
-                detail.Employee = await _employeeService.GetByIdAsync(detail.EmployeeId);
-            }
             
             return projectDetails;
         }

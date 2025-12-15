@@ -91,28 +91,7 @@
                                     </div>
                                     <div class="card-body">
                                         <dl class="row">
-                                            <dt class="col-sm-4">Employee:</dt>
-                                            <dd class="col-sm-8">
-                                                @if (projectDetail.Employee != null)
-                                                {
-                                                    <strong>@projectDetail.Employee.FullName</strong><br>
-                                                    <small class="text-muted">@projectDetail.Employee.EmployeeCode</small><br>
-                                                    <small class="text-muted">@projectDetail.Employee.Department</small>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-warning">Employee not found</span>
-                                                }
-                                            </dd>
-
-                                            <dt class="col-sm-4">Role:</dt>
-                                            <dd class="col-sm-8">@projectDetail.Role</dd>
-
-                                            <dt class="col-sm-4">Allocation:</dt>
-                                            <dd class="col-sm-8">
-                                                <span class="badge bg-info">@projectDetail.AllocationPercentage%</span>
-                                            </dd>
-
+                                            
                                             <dt class="col-sm-4">Status:</dt>
                                             <dd class="col-sm-8">
                                                 @if (projectDetail.IsActive && (!projectDetail.EndDate.HasValue || projectDetail.EndDate.Value >= DateTime.Today))

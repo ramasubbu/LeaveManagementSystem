@@ -10,10 +10,6 @@ namespace LeaveManagementPortal.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Employee ID is required")]
-        [Display(Name = "Employee ID")]
-        public string EmployeeId { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Project Code is required")]
         [Display(Name = "Project Code")]
         public string ProjectCode { get; set; } = string.Empty;
@@ -33,13 +29,6 @@ namespace LeaveManagementPortal.Models
         [Display(Name = "End Date")]
         [DataType(DataType.Date)]
         public DateTime? EndDate { get; set; }
-
-        [Required(ErrorMessage = "Role is required")]
-        public string Role { get; set; } = string.Empty;
-
-        [Display(Name = "Allocation Percentage")]
-        [Range(0, 100, ErrorMessage = "Allocation percentage must be between 0 and 100")]
-        public decimal AllocationPercentage { get; set; } = 100;
 
         [Display(Name = "Project Manager")]
         public string ProjectManager { get; set; } = string.Empty;

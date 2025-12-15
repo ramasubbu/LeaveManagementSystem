@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using LeaveManagementPortal.Models;
-using LeaveManagementPortal.Services;
+using LMS.Web.Models;
+using LMS.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

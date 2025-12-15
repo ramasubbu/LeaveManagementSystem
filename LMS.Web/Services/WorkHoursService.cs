@@ -1,7 +1,7 @@
-using LeaveManagementPortal.Models;
-using LeaveManagementPortal.Services;
+using LMS.Web.Models;
+using LMS.Web.Services;
 
-namespace LeaveManagementPortal.Services;
+namespace LMS.Web.Services;
 
 public class WorkHoursService
 {

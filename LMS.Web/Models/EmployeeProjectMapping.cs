@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
-namespace LeaveManagementPortal.Models
+namespace LMS.Web.Models
 {
     public class EmployeeProjectMapping
     {

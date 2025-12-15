@@ -1,4 +1,4 @@
-namespace LeaveManagementPortal.Models
+namespace LMS.Web.Models
 {
     public class MongoDbSettings
     {

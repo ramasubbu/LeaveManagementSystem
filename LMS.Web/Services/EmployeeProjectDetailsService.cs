@@ -1,8 +1,8 @@
-using LeaveManagementPortal.Models;
+using LMS.Web.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace LeaveManagementPortal.Services
+namespace LMS.Web.Services
 {
     public class EmployeeProjectDetailsService
     {

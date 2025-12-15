@@ -1,4 +1,4 @@
-namespace LeaveManagementPortal.Services;
+namespace LMS.Web.Services;
 
 public class AuthenticationService
 {

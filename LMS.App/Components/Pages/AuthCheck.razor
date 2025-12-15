@@ -1,0 +1,31 @@
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+@code {
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Check authentication
+        if (firstRender)
+        {
+            try
+            {
+                var url = Navigation.Uri;
+                if (!url.Contains("login"))
+                {
+                    var isAuthenticated = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "isAuthenticated");
+                    if (string.IsNullOrEmpty(isAuthenticated) && isAuthenticated != "true")
+                    {
+                        Navigation.NavigateTo("/login", forceLoad: true);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+        }
+    }
+}
+

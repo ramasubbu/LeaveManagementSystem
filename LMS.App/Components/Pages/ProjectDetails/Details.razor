@@ -1,0 +1,210 @@
+@page "/project-details/details/{Id}"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject EmployeeProjectDetailsService ProjectDetailsService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Project Assignment Details</PageTitle>
+<AuthCheck />
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Project Assignment Details</h3>
+                    <div>
+                        @if (projectDetail != null)
+                        {
+                            <button class="btn btn-primary me-2" @onclick="() => NavigateToEdit(projectDetail.Id)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        }
+                        <button class="btn btn-secondary" @onclick="NavigateBack">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (projectDetail == null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Project assignment not found.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Project Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Project Code:</dt>
+                                            <dd class="col-sm-8">@projectDetail.ProjectCode</dd>
+
+                                            <dt class="col-sm-4">Project Name:</dt>
+                                            <dd class="col-sm-8">@projectDetail.ProjectName</dd>
+
+                                            <dt class="col-sm-4">Description:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (!string.IsNullOrEmpty(projectDetail.ProjectDescription))
+                                                {
+                                                    @projectDetail.ProjectDescription
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No description provided</span>
+                                                }
+                                            </dd>
+
+                                            <dt class="col-sm-4">Project Manager:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (!string.IsNullOrEmpty(projectDetail.ProjectManager))
+                                                {
+                                                    @projectDetail.ProjectManager
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not assigned</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Employee Assignment</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            
+                                            <dt class="col-sm-4">Status:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (projectDetail.IsActive && (!projectDetail.EndDate.HasValue || projectDetail.EndDate.Value >= DateTime.Today))
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else if (projectDetail.IsActive && projectDetail.EndDate.HasValue && projectDetail.EndDate.Value < DateTime.Today)
+                                                {
+                                                    <span class="badge bg-warning">Completed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Timeline</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Start Date:</dt>
+                                            <dd class="col-sm-8">@projectDetail.StartDate.ToString("MMMM dd, yyyy")</dd>
+
+                                            <dt class="col-sm-4">End Date:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (projectDetail.EndDate.HasValue)
+                                                {
+                                                    @projectDetail.EndDate.Value.ToString("MMMM dd, yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-success">Ongoing</span>
+                                                }
+                                            </dd>
+
+                                            @if (projectDetail.EndDate.HasValue)
+                                            {
+                                                <dt class="col-sm-4">Duration:</dt>
+                                                <dd class="col-sm-8">
+                                                    @{
+                                                        var duration = projectDetail.EndDate.Value - projectDetail.StartDate;
+                                                    }
+                                                    @duration.Days days
+                                                </dd>
+                                            }
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">System Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Created Date:</dt>
+                                            <dd class="col-sm-8">@projectDetail.CreatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+
+                                            <dt class="col-sm-4">Updated Date:</dt>
+                                            <dd class="col-sm-8">@projectDetail.UpdatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+    
+    private EmployeeProjectDetails? projectDetail;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            projectDetail = await ProjectDetailsService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering, will show in UI
+            projectDetail = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void NavigateToEdit(string id)
+    {
+        Navigation.NavigateTo($"/project-details/edit/{id}");
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/project-details");
+    }
+}

@@ -1,0 +1,176 @@
+@page "/project-details/edit/{Id}"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject EmployeeProjectDetailsService ProjectDetailsService
+@inject EmployeeService EmployeeService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Project Assignment</PageTitle>
+<AuthCheck />
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Edit Project Assignment</h3>
+                </div>
+                <div class="card-body">
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (projectDetail == null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Project assignment not found.
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="@projectDetail" OnValidSubmit="@HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-danger" />
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="projectCode" class="form-label">Project Code</label>
+                                    <InputText id="projectCode" class="form-control" @bind-Value="projectDetail.ProjectCode" />
+                                    <ValidationMessage For="@(() => projectDetail.ProjectCode)" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="projectName" class="form-label">Project Name</label>
+                                    <InputText id="projectName" class="form-control" @bind-Value="projectDetail.ProjectName" />
+                                    <ValidationMessage For="@(() => projectDetail.ProjectName)" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="projectDescription" class="form-label">Project Description</label>
+                                    <InputTextArea id="projectDescription" class="form-control" rows="3" @bind-Value="projectDetail.ProjectDescription" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <InputDate id="startDate" class="form-control" @bind-Value="projectDetail.StartDate" />
+                                    <ValidationMessage For="@(() => projectDetail.StartDate)" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="endDate" class="form-label">End Date (Optional)</label>
+                                    <InputDate id="endDate" class="form-control" @bind-Value="projectDetail.EndDate" />
+                                </div>
+                            </div>
+
+
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="projectManager" class="form-label">Project Manager</label>
+                                    <InputSelect id="projectManager" class="form-select" @bind-Value="projectDetail.ProjectManager">
+                                        <option value="">Select Project Manager</option>
+                                        @if (managers != null)
+                                        {
+                                            @foreach (var manager in managers)
+                                            {
+                                                <option value="@manager.FullName">@manager.FullName (@manager.EmployeeCode)</option>
+                                            }
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <InputCheckbox id="isActive" class="form-check-input" @bind-Value="projectDetail.IsActive" />
+                                        <label class="form-check-label" for="isActive">
+                                            Is Active
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary" disabled="@saving">
+                                    @if (saving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                                        <span>Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-save"></i>
+                                        <span>Update Assignment</span>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-secondary" @onclick="NavigateBack">
+                                    <i class="fas fa-arrow-left"></i> Back to List
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+    
+    private EmployeeProjectDetails? projectDetail;
+    private List<Employee>? managers;
+    private bool loading = true;
+    private bool saving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            projectDetail = await ProjectDetailsService.GetByIdAsync(Id);
+            managers = await EmployeeService.GetManagersAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering, will show in UI
+            projectDetail = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (projectDetail == null) return;
+
+        saving = true;
+        try
+        {
+            await ProjectDetailsService.UpdateAsync(Id, projectDetail);
+            await JSRuntime.InvokeVoidAsync("alert", "Project updated successfully!");
+            Navigation.NavigateTo("/project-details");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error updating project assignment: {ex.Message}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/project-details");
+    }
+}

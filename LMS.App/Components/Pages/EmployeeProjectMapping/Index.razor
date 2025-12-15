@@ -1,0 +1,224 @@
+@page "/employee-project-mapping"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject EmployeeProjectMappingService MappingService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Employee Project Mapping</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Employee Project Mapping</h3>
+                    <a href="/employee-project-mapping/add" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Mapping
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Search Controls -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" @bind="searchTerm" @onkeypress="@(async (e) => { if (e.Key == "Enter") await SearchMappings(); })" 
+                                       class="form-control" placeholder="Search by employee name, project name, or role..." />
+                                <button class="btn btn-outline-secondary" type="button" @onclick="SearchMappings">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if (!string.IsNullOrEmpty(searchTerm))
+                                {
+                                    <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-end">
+                                <span class="badge bg-info">Total: @(filteredMappings?.Count ?? 0)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (filteredMappings == null || !filteredMappings.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            @if (string.IsNullOrEmpty(searchTerm))
+                            {
+                                <text>No employee project mappings found. Click "Add New Mapping" to create one.</text>
+                            }
+                            else
+                            {
+                                <text>No mappings found matching "@searchTerm".</text>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Table -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Project</th>
+                                        <th>Role</th>
+                                        <th>Allocation %</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var mapping in filteredMappings)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold">@(mapping.Employee?.FullName ?? "N/A")</span>
+                                                    <small class="text-muted">@(mapping.Employee?.EmployeeCode ?? "N/A")</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold">@(mapping.Project?.ProjectName ?? "N/A")</span>
+                                                    <small class="text-muted">@(mapping.Project?.ProjectCode ?? "N/A")</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@mapping.Role</span>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: @(mapping.AllocationPercentage)%"
+                                                         aria-valuenow="@mapping.AllocationPercentage" 
+                                                         aria-valuemin="0" aria-valuemax="100">
+                                                        @(mapping.AllocationPercentage)%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@mapping.StartDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@(mapping.EndDate?.ToString("MMM dd, yyyy") ?? "Ongoing")</td>
+                                            <td>
+                                                @if (mapping.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="/employee-project-mapping/edit/@mapping.Id" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMapping(mapping)" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<EmployeeProjectMapping>? allMappings;
+    private List<EmployeeProjectMapping>? filteredMappings;
+    private string searchTerm = string.Empty;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMappings();
+    }
+
+    private async Task LoadMappings()
+    {
+        loading = true;
+        try
+        {
+            allMappings = await MappingService.GetAllAsync();
+            filteredMappings = allMappings;
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering
+            allMappings = new List<EmployeeProjectMapping>();
+            filteredMappings = allMappings;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SearchMappings()
+    {
+        loading = true;
+        try
+        {
+            filteredMappings = await MappingService.SearchAsync(searchTerm);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error searching mappings: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ClearSearch()
+    {
+        searchTerm = string.Empty;
+        filteredMappings = allMappings;
+    }
+
+    private async Task DeleteMapping(EmployeeProjectMapping mapping)
+    {
+        var employeeName = mapping.Employee?.FullName ?? "Unknown";
+        var projectName = mapping.Project?.ProjectName ?? "Unknown";
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Are you sure you want to delete the mapping between {employeeName} and {projectName}?");
+        
+        if (confirmed)
+        {
+            try
+            {
+                await MappingService.RemoveAsync(mapping.Id!);
+                await JSRuntime.InvokeVoidAsync("alert", "Mapping deleted successfully!");
+                await LoadMappings();
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting mapping: {ex.Message}");
+            }
+        }
+    }
+}

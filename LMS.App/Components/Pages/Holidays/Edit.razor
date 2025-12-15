@@ -1,0 +1,266 @@
+@page "/holidays/edit/{Id}"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject HolidayService HolidayService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Edit Holiday</PageTitle>
+<AuthCheck />
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/home" class="text-decoration-none">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="/holidays" class="text-decoration-none">Holidays</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit Holiday</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading holiday details...</p>
+        </div>
+    }
+    else if (holiday == null)
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <h5 class="text-muted">Holiday Not Found</h5>
+            <p class="text-muted">The requested holiday could not be found.</p>
+            <button class="btn btn-primary" @onclick="NavigateToList">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-edit text-primary"></i> Edit Holiday: @holiday.Name
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                @errorMessage
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success" role="alert">
+                                <i class="fas fa-check-circle"></i>
+                                @successMessage
+                            </div>
+                        }
+
+                        <EditForm Model="holiday" OnValidSubmit="HandleSubmit" FormName="EditHolidayForm">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Holiday Name <span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="holiday.Name" 
+                                                  class="form-control" 
+                                                  id="name" 
+                                                  placeholder="Enter holiday name" />
+                                        <ValidationMessage For="@(() => holiday.Name)" class="text-danger" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="date" class="form-label">Holiday Date <span class="text-danger">*</span></label>
+                                        <InputDate @bind-Value="holiday.Date" 
+                                                  class="form-control" 
+                                                  id="date" />
+                                        <ValidationMessage For="@(() => holiday.Date)" class="text-danger" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <InputTextArea @bind-Value="holiday.Description" 
+                                                      class="form-control" 
+                                                      id="description" 
+                                                      placeholder="Enter holiday description (optional)"
+                                                      rows="3" />
+                                        <ValidationMessage For="@(() => holiday.Description)" class="text-danger" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <InputCheckbox @bind-Value="holiday.IsActive" 
+                                                          class="form-check-input" 
+                                                          id="isActive" />
+                                            <label class="form-check-label" for="isActive">
+                                                Active Holiday
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            Only active holidays will be considered in work hour calculations
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (holiday.Date != default(DateTime))
+                            {
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>Holiday Info:</strong> @holiday.Date.ToString("dddd, MMMM dd, yyyy") 
+                                            @if (holiday.Date.DayOfWeek == DayOfWeek.Saturday || holiday.Date.DayOfWeek == DayOfWeek.Sunday)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-2">Weekend</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (holiday.CreatedAt != default(DateTime))
+                            {
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-light">
+                                            <small class="text-muted">
+                                                <strong>Created:</strong> @holiday.CreatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                                                @if (holiday.UpdatedAt.HasValue)
+                                                {
+                                                    <br />
+                                                    <strong>Last Updated:</strong> @holiday.UpdatedAt.Value.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-secondary" @onclick="NavigateToList">
+                                            <i class="fas fa-arrow-left"></i> Back to List
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                            @if (isSubmitting)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                <span>Updating...</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-save me-2"></i>
+                                                <span>Update Holiday</span>
+                                            }
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private Holiday? holiday;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHoliday();
+    }
+
+    private async Task LoadHoliday()
+    {
+        try
+        {
+            isLoading = true;
+            holiday = await HolidayService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error loading holiday details.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (holiday == null) return;
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+
+            // Check for duplicate holidays on the same date (excluding current holiday)
+            var existingHolidays = await HolidayService.GetHolidaysByMonthAsync(holiday.Date.Year, holiday.Date.Month);
+            if (existingHolidays.Any(h => h.Date.Date == holiday.Date.Date && h.Id != holiday.Id))
+            {
+                errorMessage = "A holiday already exists on this date.";
+                return;
+            }
+
+            await HolidayService.UpdateAsync(Id, holiday);
+            successMessage = "Holiday updated successfully!";
+            
+            // Navigate after a short delay to show success message
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/holidays");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error updating holiday. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToList() => Navigation.NavigateTo("/holidays");
+}

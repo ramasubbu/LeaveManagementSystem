@@ -1,0 +1,248 @@
+@page "/holidays"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject HolidayService HolidayService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Holiday Management</PageTitle>
+<AuthCheck />
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3><i class="fas fa-calendar-day text-primary"></i> Holiday Management</h3>
+                    <p class="text-muted">Manage system holidays and special dates</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" @onclick="NavigateToAdd">
+                        <i class="fas fa-plus"></i> Add Holiday
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Search holidays..." @bind="searchTerm" @oninput="OnSearchInput" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" @bind="selectedYear" @bind:after="LoadHolidays">
+                <option value="0">All Years</option>
+                @for (int year = DateTime.Now.Year - 2; year <= DateTime.Now.Year + 2; year++)
+                {
+                    <option value="@year">@year</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" @bind="showActiveOnly" @bind:after="LoadHolidays">
+                <option value="true">Active Only</option>
+                <option value="false">All Holidays</option>
+            </select>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading holidays...</p>
+        </div>
+    }
+    else if (filteredHolidays?.Any() == true)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Holiday Name</th>
+                                        <th>Date</th>
+                                        <th>Day</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var holiday in filteredHolidays)
+                                    {
+                                        <tr class="@(holiday.IsActive ? "" : "table-secondary")">
+                                            <td>
+                                                <strong>@holiday.Name</strong>
+                                            </td>
+                                            <td>
+                                                @holiday.Date.ToString("MMM dd, yyyy")
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@holiday.Date.DayOfWeek</span>
+                                            </td>
+                                            <td>
+                                                @(string.IsNullOrEmpty(holiday.Description) ? "No description" : holiday.Description)
+                                            </td>
+                                            <td>
+                                                @if (holiday.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" @onclick="() => NavigateToEdit(holiday.Id!)" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(holiday)" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">
+                        Total: @filteredHolidays.Count() holiday(s)
+                        @if (selectedYear > 0)
+                        {
+                            <span> in @selectedYear</span>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No holidays found</h5>
+            <p class="text-muted">
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <span>No holidays match your search criteria.</span>
+                }
+                else
+                {
+                    <span>There are no holidays configured yet.</span>
+                }
+            </p>
+            <button class="btn btn-primary" @onclick="NavigateToAdd">
+                <i class="fas fa-plus"></i> Add First Holiday
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Holiday> holidays = new();
+    private IEnumerable<Holiday> filteredHolidays = new List<Holiday>();
+    private bool isLoading = true;
+    private string searchTerm = string.Empty;
+    private int selectedYear = DateTime.Now.Year;
+    private bool showActiveOnly = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHolidays();
+    }
+
+    private async Task LoadHolidays()
+    {
+        try
+        {
+            isLoading = true;
+            holidays = await HolidayService.GetAllAsync();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            holidays = new List<Holiday>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var query = holidays.AsEnumerable();
+
+        // Filter by active status
+        if (showActiveOnly)
+        {
+            query = query.Where(h => h.IsActive);
+        }
+
+        // Filter by year
+        if (selectedYear > 0)
+        {
+            query = query.Where(h => h.Date.Year == selectedYear);
+        }
+
+        // Filter by search term
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(h =>
+                h.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(h.Description) && h.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        filteredHolidays = query.OrderBy(h => h.Date).ToList();
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private async Task ConfirmDelete(Holiday holiday)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{holiday.Name}'?");
+        if (confirmed)
+        {
+            try
+            {
+                await HolidayService.DeleteAsync(holiday.Id!);
+                await LoadHolidays();
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error deleting holiday. Please try again.");
+            }
+        }
+    }
+
+    private void NavigateToAdd() => Navigation.NavigateTo("/holidays/add");
+    private void NavigateToEdit(string id) => Navigation.NavigateTo($"/holidays/edit/{id}");
+}

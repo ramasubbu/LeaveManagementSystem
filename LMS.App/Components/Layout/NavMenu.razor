@@ -1,0 +1,87 @@
+﻿@inject IJSRuntime JSRuntime
+
+@if (showMenu)
+{
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="">Leave Management Portal</a>
+            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employees">
+                    <span class="oi oi-people" aria-hidden="true"></span> Employees
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="project-details">
+                    <span class="oi oi-briefcase" aria-hidden="true"></span> Project Details
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employee-project-mapping">
+                    <span class="oi oi-link-intact" aria-hidden="true"></span> Employee Project Mapping
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="leave-details">
+                    <span class="oi oi-calendar" aria-hidden="true"></span> Leave Management
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="holidays">
+                    <span class="oi oi-sun" aria-hidden="true"></span> Holiday Management
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+}
+@code {
+    private bool collapseNavMenu = true;
+    private bool showMenu { get; set; } = false;
+
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check authentication
+            try
+            {
+                var isAuthenticated = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "isAuthenticated");
+                if (!string.IsNullOrEmpty(isAuthenticated) || isAuthenticated == "true")
+                {
+                    showMenu = true;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                showMenu = false;
+            }
+        }
+    }
+}
+

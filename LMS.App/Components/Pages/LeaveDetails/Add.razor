@@ -1,0 +1,220 @@
+@page "/leave-details/add"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject EmployeeLeaveDetailsService LeaveDetailsService
+@inject EmployeeService EmployeeService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Apply Leave</PageTitle>
+<AuthCheck />
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Apply for Leave</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@leaveDetail" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employeeId" class="form-label">Employee</label>
+                                <InputSelect id="employeeId" class="form-select" @bind-Value="leaveDetail.EmployeeId">
+                                    <option value="">Select Employee</option>
+                                    @if (employees != null)
+                                    {
+                                        @foreach (var employee in employees)
+                                        {
+                                            <option value="@employee.Id">@employee.FullName (@employee.EmployeeCode)</option>
+                                        }
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => leaveDetail.EmployeeId)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="leaveType" class="form-label">Leave Type</label>
+                                <InputSelect id="leaveType" class="form-select" @bind-Value="leaveDetail.LeaveType">
+                                    @foreach (LeaveType type in Enum.GetValues<LeaveType>())
+                                    {
+                                        <option value="@type">@type</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => leaveDetail.LeaveType)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <InputDate id="startDate" class="form-control" @bind-Value="leaveDetail.StartDate" @onchange="CalculateDays" />
+                                <ValidationMessage For="@(() => leaveDetail.StartDate)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <InputDate id="endDate" class="form-control" @bind-Value="leaveDetail.EndDate" @onchange="CalculateDays" />
+                                <ValidationMessage For="@(() => leaveDetail.EndDate)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="alert alert-info">
+                                    <strong>Total Days:</strong> @totalDays days
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="reason" class="form-label">Reason for Leave</label>
+                                <InputTextArea id="reason" class="form-control" rows="3" @bind-Value="leaveDetail.Reason" />
+                                <ValidationMessage For="@(() => leaveDetail.Reason)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="comments" class="form-label">Additional Comments (Optional)</label>
+                                <InputTextArea id="comments" class="form-control" rows="2" @bind-Value="leaveDetail.Comments" />
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(overlapWarning))
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> @overlapWarning
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@saving">
+                                @if (saving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    <span>Submitting...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Submit Leave Application</span>
+                                }
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="NavigateBack">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private EmployeeLeaveDetails leaveDetail = new();
+    private List<Employee>? employees;
+    private bool saving = false;
+    private int totalDays = 1;
+    private string overlapWarning = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            employees = await EmployeeService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering
+            employees = new List<Employee>();
+        }
+    }
+
+    private async Task CalculateDays()
+    {
+        totalDays = (leaveDetail.EndDate - leaveDetail.StartDate).Days + 1;
+        
+        if (totalDays < 1)
+        {
+            overlapWarning = "End date must be equal to or after start date.";
+            return;
+        }
+
+        overlapWarning = string.Empty;
+
+        // Check for overlapping leaves if employee is selected
+        if (!string.IsNullOrEmpty(leaveDetail.EmployeeId))
+        {
+            try
+            {
+                var hasOverlap = await LeaveDetailsService.HasOverlappingLeaveAsync(
+                    leaveDetail.EmployeeId, 
+                    leaveDetail.StartDate, 
+                    leaveDetail.EndDate);
+
+                if (hasOverlap)
+                {
+                    overlapWarning = "Warning: This employee has overlapping leave dates with existing approved or pending leaves.";
+                }
+            }
+            catch (Exception ex)
+            {
+                overlapWarning = $"Could not check for overlapping leaves: {ex.Message}";
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (totalDays < 1)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Please select valid dates. End date must be equal to or after start date.");
+            return;
+        }
+
+        saving = true;
+        try
+        {
+            // Final check for overlapping leaves
+            var hasOverlap = await LeaveDetailsService.HasOverlappingLeaveAsync(
+                leaveDetail.EmployeeId, 
+                leaveDetail.StartDate, 
+                leaveDetail.EndDate);
+
+            if (hasOverlap)
+            {
+                var proceed = await JSRuntime.InvokeAsync<bool>("confirm", 
+                    "This employee has overlapping leave dates with existing leaves. Do you want to proceed anyway?");
+                
+                if (!proceed)
+                {
+                    saving = false;
+                    return;
+                }
+            }
+
+            await LeaveDetailsService.CreateAsync(leaveDetail);
+            await JSRuntime.InvokeVoidAsync("alert", "Leave application submitted successfully!");
+            Navigation.NavigateTo("/leave-details");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error submitting leave application: {ex.Message}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/leave-details");
+    }
+}

@@ -1,0 +1,180 @@
+@page "/employee-project-mapping/add"
+@using LMS.App.Models
+@using LMS.App.Services
+@inject EmployeeProjectMappingService MappingService
+@inject EmployeeService EmployeeService
+@inject EmployeeProjectDetailsService ProjectDetailsService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Add Employee Project Mapping</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Add New Employee Project Mapping</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@mapping" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employeeId" class="form-label">Employee</label>
+                                <InputSelect id="employeeId" class="form-select" @bind-Value="mapping.EmployeeId">
+                                    <option value="">Select Employee</option>
+                                    @if (employees != null)
+                                    {
+                                        @foreach (var employee in employees)
+                                        {
+                                            <option value="@employee.Id">@employee.FullName (@employee.EmployeeCode)</option>
+                                        }
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => mapping.EmployeeId)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="projectId" class="form-label">Project</label>
+                                <InputSelect id="projectId" class="form-select" @bind-Value="mapping.ProjectId">
+                                    <option value="">Select Project</option>
+                                    @if (projects != null)
+                                    {
+                                        @foreach (var project in projects)
+                                        {
+                                            <option value="@project.Id">@project.ProjectName (@project.ProjectCode)</option>
+                                        }
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => mapping.ProjectId)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <InputSelect id="role" class="form-select" @bind-Value="mapping.Role">
+                                    <option value="">Select Role</option>
+                                    <option value="Developer">Developer</option>
+                                    <option value="Senior Developer">Senior Developer</option>
+                                    <option value="Team Lead">Team Lead</option>
+                                    <option value="Project Manager">Project Manager</option>
+                                    <option value="Business Analyst">Business Analyst</option>
+                                    <option value="QA Engineer">QA Engineer</option>
+                                    <option value="DevOps Engineer">DevOps Engineer</option>
+                                    <option value="UI/UX Designer">UI/UX Designer</option>
+                                    <option value="Architect">Architect</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => mapping.Role)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="allocationPercentage" class="form-label">Allocation Percentage</label>
+                                <InputNumber id="allocationPercentage" class="form-control" @bind-Value="mapping.AllocationPercentage" min="1" max="100" />
+                                <ValidationMessage For="@(() => mapping.AllocationPercentage)" />
+                                <div class="form-text">Specify the percentage of time allocated to this project (1-100%)</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <InputDate id="startDate" class="form-control" @bind-Value="mapping.StartDate" />
+                                <ValidationMessage For="@(() => mapping.StartDate)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endDate" class="form-label">End Date (Optional)</label>
+                                <InputDate id="endDate" class="form-control" @bind-Value="mapping.EndDate" />
+                                <div class="form-text">Leave empty for ongoing assignment</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="mapping.IsActive" />
+                                    <label class="form-check-label" for="isActive">
+                                        Is Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@saving">
+                                @if (saving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Mapping</span>
+                                }
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="NavigateBack">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private EmployeeProjectMapping mapping = new();
+    private List<Employee>? employees;
+    private List<EmployeeProjectDetails>? projects;
+    private bool saving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            employees = await EmployeeService.GetAllAsync();
+            projects = await ProjectDetailsService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering
+            employees = new List<Employee>();
+            projects = new List<EmployeeProjectDetails>();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        saving = true;
+        try
+        {
+            // Check if employee is already assigned to this project
+            var isAlreadyAssigned = await MappingService.IsEmployeeAlreadyAssignedToProjectAsync(mapping.EmployeeId, mapping.ProjectId);
+            if (isAlreadyAssigned)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "This employee is already assigned to the selected project.");
+                return;
+            }
+
+            await MappingService.CreateAsync(mapping);
+            await JSRuntime.InvokeVoidAsync("alert", "Employee project mapping created successfully!");
+            Navigation.NavigateTo("/employee-project-mapping");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error creating mapping: {ex.Message}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/employee-project-mapping");
+    }
+}

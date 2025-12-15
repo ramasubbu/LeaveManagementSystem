@@ -1,0 +1,42 @@
+@using Microsoft.AspNetCore.Components.Forms
+@inherits InputDate<DateTime?>
+
+<input @attributes="AdditionalAttributes" 
+       class="@CssClass" 
+       type="date" 
+       value="@CurrentValueAsString" 
+       @onchange="EventCallback.Factory.CreateBinder<string>(this, __value => CurrentValueAsString = __value, CurrentValueAsString)" />
+
+@code {
+    protected override string FormatValueAsString(DateTime? value)
+    {
+        if (value == null || value == DateTime.MinValue)
+        {
+            return string.Empty;
+        }
+        
+        // Format date as YYYY-MM-DD in local time to prevent timezone issues
+        return value.Value.ToString("yyyy-MM-dd");
+    }
+
+    protected override bool TryParseValueFromString(string? value, out DateTime? result, out string? validationErrorMessage)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            result = null;
+            validationErrorMessage = null;
+            return true;
+        }
+
+        if (DateTime.TryParseExact(value, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
+        {
+            result = parsedDate;
+            validationErrorMessage = null;
+            return true;
+        }
+
+        result = null;
+        validationErrorMessage = "Please enter a valid date.";
+        return false;
+    }
+}

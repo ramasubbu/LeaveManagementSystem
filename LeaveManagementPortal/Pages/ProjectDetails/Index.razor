@@ -1,0 +1,249 @@
+@page "/project-details"
+@using LeaveManagementPortal.Models
+@using LeaveManagementPortal.Services
+@inject EmployeeProjectDetailsService ProjectDetailsService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Project Details Management</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Employee Project Details</h3>
+                    <button class="btn btn-primary" @onclick="NavigateToAdd">
+                        <i class="fas fa-plus"></i> Add Project Assignment
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search projects..." @bind="searchTerm" @onkeypress="OnSearchKeyPress" />
+                                <button class="btn btn-outline-secondary" type="button" @onclick="SearchProjects">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" @onclick="LoadProjectDetails">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-info" @onclick="LoadActiveProjects">
+                                <i class="fas fa-filter"></i> Show Active Projects Only
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (projectDetails == null || !projectDetails.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No project assignments found.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Project Code</th>
+                                        <th>Project Name</th>
+                                        <th>Employee</th>
+                                        <th>Role</th>
+                                        <th>Allocation %</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in projectDetails)
+                                    {
+                                        <tr>
+                                            <td>@detail.ProjectCode</td>
+                                            <td>@detail.ProjectName</td>
+                                            <td>
+                                                @if (detail.Employee != null)
+                                                {
+                                                    <span>@detail.Employee.FullName (@detail.Employee.EmployeeCode)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-warning">Employee not found</span>
+                                                }
+                                            </td>
+                                            <td>@detail.Role</td>
+                                            <td>@detail.AllocationPercentage%</td>
+                                            <td>@detail.StartDate.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                @if (detail.EndDate.HasValue)
+                                                {
+                                                    @detail.EndDate.Value.ToString("yyyy-MM-dd")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Ongoing</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (detail.IsActive && (!detail.EndDate.HasValue || detail.EndDate.Value >= DateTime.Today))
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else if (detail.IsActive && detail.EndDate.HasValue && detail.EndDate.Value < DateTime.Today)
+                                                {
+                                                    <span class="badge bg-warning">Completed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToEdit(detail.Id)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info" @onclick="() => NavigateToDetails(detail.Id)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="@(() => DeleteProjectDetail(detail.Id, detail.ProjectName, detail.Employee?.FullName ?? "Unknown"))">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<EmployeeProjectDetails>? projectDetails;
+    private List<EmployeeProjectDetails> activeProjects;
+    private string searchTerm = string.Empty;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjectDetails();
+    }
+
+    private async Task LoadProjectDetails()
+    {
+        loading = true;
+        try
+        {
+            projectDetails = await ProjectDetailsService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering
+            projectDetails = new List<EmployeeProjectDetails>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task LoadActiveProjects()
+    {
+        loading = true;
+        try
+        {
+            activeProjects = await ProjectDetailsService.GetActiveProjectsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering
+            activeProjects = new List<EmployeeProjectDetails>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SearchProjects()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            await LoadProjectDetails();
+            return;
+        }
+
+        loading = true;
+        try
+        {
+            projectDetails = await ProjectDetailsService.SearchAsync(searchTerm);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error searching projects: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OnSearchKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchProjects();
+        }
+    }
+
+    private void NavigateToAdd()
+    {
+        Navigation.NavigateTo("/project-details/add");
+    }
+
+    private void NavigateToEdit(string id)
+    {
+        Navigation.NavigateTo($"/project-details/edit/{id}");
+    }
+
+    private void NavigateToDetails(string id)
+    {
+        Navigation.NavigateTo($"/project-details/details/{id}");
+    }
+
+    private async Task DeleteProjectDetail(string id, string projectName, string employeeName)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete project assignment '{projectName}' for '{employeeName}'?");
+        if (confirmed)
+        {
+            try
+            {
+                await ProjectDetailsService.DeleteAsync(id);
+                await LoadProjectDetails();
+                await JSRuntime.InvokeVoidAsync("alert", "Project assignment deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting project assignment: {ex.Message}");
+            }
+        }
+    }
+}

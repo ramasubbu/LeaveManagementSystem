@@ -1,0 +1,192 @@
+@page "/employees/details/{Id}"
+@using LeaveManagementPortal.Models
+@using LeaveManagementPortal.Services
+@inject EmployeeService EmployeeService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Employee Details</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Employee Details</h3>
+                    <div>
+                        @if (employee != null)
+                        {
+                            <button class="btn btn-primary me-2" @onclick="() => NavigateToEdit(employee.Id)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        }
+                        <button class="btn btn-secondary" @onclick="NavigateBack">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (employee == null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Employee not found.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Personal Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Employee Code:</dt>
+                                            <dd class="col-sm-8">@employee.EmployeeCode</dd>
+
+                                            <dt class="col-sm-4">Full Name:</dt>
+                                            <dd class="col-sm-8">@employee.FullName</dd>
+
+                                            <dt class="col-sm-4">Email:</dt>
+                                            <dd class="col-sm-8">
+                                                <a href="mailto:@employee.Email">@employee.Email</a>
+                                            </dd>
+
+                                            <dt class="col-sm-4">Phone:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (!string.IsNullOrEmpty(employee.Phone))
+                                                {
+                                                    <a href="tel:@employee.Phone">@employee.Phone</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not provided</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Work Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Department:</dt>
+                                            <dd class="col-sm-8">@employee.Department</dd>
+
+                                            <dt class="col-sm-4">Designation:</dt>
+                                            <dd class="col-sm-8">@employee.Designation</dd>
+
+                                            <dt class="col-sm-4">Date of Joining:</dt>
+                                            <dd class="col-sm-8">@employee.DateOfJoining.ToString("MMMM dd, yyyy")</dd>
+
+                                            <dt class="col-sm-4">Manager:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (manager != null)
+                                                {
+                                                    <span>@manager.FullName (@manager.EmployeeCode)</span>
+                                                }
+                                                else if (!string.IsNullOrEmpty(employee.ManagerId))
+                                                {
+                                                    <span class="text-warning">Manager not found</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No manager assigned</span>
+                                                }
+                                            </dd>
+
+                                            <dt class="col-sm-4">Status:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (employee.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">System Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-2">Created Date:</dt>
+                                            <dd class="col-sm-4">@employee.CreatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+
+                                            <dt class="col-sm-2">Updated Date:</dt>
+                                            <dd class="col-sm-4">@employee.UpdatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+    
+    private Employee? employee;
+    private Employee? manager;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            employee = await EmployeeService.GetByIdAsync(Id);
+            
+            if (employee != null && !string.IsNullOrEmpty(employee.ManagerId))
+            {
+                manager = await EmployeeService.GetByIdAsync(employee.ManagerId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering, will show in UI
+            employee = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void NavigateToEdit(string id)
+    {
+        Navigation.NavigateTo($"/employees/edit/{id}");
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/employees");
+    }
+}

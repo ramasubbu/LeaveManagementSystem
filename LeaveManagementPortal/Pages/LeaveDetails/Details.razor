@@ -1,0 +1,278 @@
+@page "/leave-details/details/{Id}"
+@using LeaveManagementPortal.Models
+@using LeaveManagementPortal.Services
+@inject EmployeeLeaveDetailsService LeaveDetailsService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Leave Application Details</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Leave Application Details</h3>
+                    <div>
+                        @if (leaveDetail != null && leaveDetail.Status == LeaveStatus.Pending)
+                        {
+                            <button class="btn btn-success me-2" @onclick="() => ApproveLeave(leaveDetail.Id)">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn btn-danger me-2" @onclick="() => RejectLeave(leaveDetail.Id)">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                            <button class="btn btn-primary me-2" @onclick="() => NavigateToEdit(leaveDetail.Id)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        }
+                        <button class="btn btn-secondary" @onclick="NavigateBack">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (leaveDetail == null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Leave application not found.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Employee Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Employee:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (leaveDetail.Employee != null)
+                                                {
+                                                    <strong>@leaveDetail.Employee.FullName</strong><br>
+                                                    <small class="text-muted">@leaveDetail.Employee.EmployeeCode</small><br>
+                                                    <small class="text-muted">@leaveDetail.Employee.Department</small><br>
+                                                    <small class="text-muted">@leaveDetail.Employee.Email</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-warning">Employee not found</span>
+                                                }
+                                            </dd>
+
+                                            <dt class="col-sm-4">Applied Date:</dt>
+                                            <dd class="col-sm-8">@leaveDetail.AppliedDate.ToString("MMMM dd, yyyy")</dd>
+
+                                            <dt class="col-sm-4">Status:</dt>
+                                            <dd class="col-sm-8">
+                                                @switch (leaveDetail.Status)
+                                                {
+                                                    case LeaveStatus.Pending:
+                                                        <span class="badge bg-warning fs-6">Pending</span>
+                                                        break;
+                                                    case LeaveStatus.Approved:
+                                                        <span class="badge bg-success fs-6">Approved</span>
+                                                        break;
+                                                    case LeaveStatus.Rejected:
+                                                        <span class="badge bg-danger fs-6">Rejected</span>
+                                                        break;
+                                                    case LeaveStatus.Cancelled:
+                                                        <span class="badge bg-secondary fs-6">Cancelled</span>
+                                                        break;
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Leave Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Leave Type:</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge bg-info fs-6">@leaveDetail.LeaveType</span>
+                                            </dd>
+
+                                            <dt class="col-sm-4">Start Date:</dt>
+                                            <dd class="col-sm-8">@leaveDetail.StartDate.ToString("MMMM dd, yyyy")</dd>
+
+                                            <dt class="col-sm-4">End Date:</dt>
+                                            <dd class="col-sm-8">@leaveDetail.EndDate.ToString("MMMM dd, yyyy")</dd>
+
+                                            <dt class="col-sm-4">Total Days:</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge bg-secondary fs-6">@leaveDetail.TotalDays days</span>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Leave Reason & Comments</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-2">Reason:</dt>
+                                            <dd class="col-sm-10">@leaveDetail.Reason</dd>
+
+                                            @if (!string.IsNullOrEmpty(leaveDetail.Comments))
+                                            {
+                                                <dt class="col-sm-2">Comments:</dt>
+                                                <dd class="col-sm-10">@leaveDetail.Comments</dd>
+                                            }
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (leaveDetail.Status == LeaveStatus.Approved || leaveDetail.Status == LeaveStatus.Rejected)
+                        {
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Approval Information</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <dl class="row">
+                                                <dt class="col-sm-2">@(leaveDetail.Status == LeaveStatus.Approved ? "Approved" : "Rejected") By:</dt>
+                                                <dd class="col-sm-4">@leaveDetail.ApprovedBy</dd>
+
+                                                <dt class="col-sm-2">@(leaveDetail.Status == LeaveStatus.Approved ? "Approved" : "Rejected") Date:</dt>
+                                                <dd class="col-sm-4">
+                                                    @if (leaveDetail.ApprovedDate.HasValue)
+                                                    {
+                                                        @leaveDetail.ApprovedDate.Value.ToString("MMMM dd, yyyy HH:mm")
+                                                    }
+                                                </dd>
+
+                                                @if (!string.IsNullOrEmpty(leaveDetail.ApprovalComments))
+                                                {
+                                                    <dt class="col-sm-2">Comments:</dt>
+                                                    <dd class="col-sm-10">@leaveDetail.ApprovalComments</dd>
+                                                }
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">System Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-2">Created Date:</dt>
+                                            <dd class="col-sm-4">@leaveDetail.CreatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+
+                                            <dt class="col-sm-2">Updated Date:</dt>
+                                            <dd class="col-sm-4">@leaveDetail.UpdatedDate.ToString("MMMM dd, yyyy HH:mm")</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+    
+    private EmployeeLeaveDetails? leaveDetail;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            leaveDetail = await LeaveDetailsService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            // Handle error silently during prerendering, will show in UI
+            leaveDetail = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ApproveLeave(string id)
+    {
+        var comments = await JSRuntime.InvokeAsync<string>("prompt", "Enter approval comments (optional):");
+        if (comments != null) // User didn't cancel
+        {
+            try
+            {
+                await LeaveDetailsService.ApproveLeaveAsync(id, "Admin", comments);
+                leaveDetail = await LeaveDetailsService.GetByIdAsync(Id); // Refresh data
+                await JSRuntime.InvokeVoidAsync("alert", "Leave approved successfully!");
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Error approving leave: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task RejectLeave(string id)
+    {
+        var comments = await JSRuntime.InvokeAsync<string>("prompt", "Enter rejection reason:");
+        if (!string.IsNullOrEmpty(comments))
+        {
+            try
+            {
+                await LeaveDetailsService.RejectLeaveAsync(id, "Admin", comments);
+                leaveDetail = await LeaveDetailsService.GetByIdAsync(Id); // Refresh data
+                await JSRuntime.InvokeVoidAsync("alert", "Leave rejected successfully!");
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Error rejecting leave: {ex.Message}");
+            }
+        }
+    }
+
+    private void NavigateToEdit(string id)
+    {
+        Navigation.NavigateTo($"/leave-details/edit/{id}");
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/leave-details");
+    }
+}

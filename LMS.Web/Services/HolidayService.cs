@@ -17,12 +17,12 @@ public class HolidayService
 
     public async Task<List<Holiday>> GetAllAsync()
     {
-        return await _holidays.Find(_ => true).SortBy(h => h.Date).ToListAsync();
+        return await _holidays.Find(_ => true).SortBy(h => h.DateUtc).ToListAsync();
     }
 
     public async Task<List<Holiday>> GetActiveHolidaysAsync()
     {
-        return await _holidays.Find(h => h.IsActive).SortBy(h => h.Date).ToListAsync();
+        return await _holidays.Find(h => h.IsActive).SortBy(h => h.DateUtc).ToListAsync();
     }
 
     public async Task<Holiday?> GetByIdAsync(string id)
@@ -32,34 +32,34 @@ public class HolidayService
 
     public async Task<List<Holiday>> GetHolidaysByYearAsync(int year)
     {
-        var startDate = new DateTime(year, 1, 1);
-        var endDate = new DateTime(year, 12, 31, 23, 59, 59);
+        var startDateUtc = DateTimeUtilityService.ToUtcDate(new DateTime(year, 1, 1));
+        var endDateUtc = DateTimeUtilityService.ToUtc(new DateTime(year, 12, 31, 23, 59, 59));
         
-        return await _holidays.Find(h => h.Date >= startDate && h.Date <= endDate && h.IsActive)
-                              .SortBy(h => h.Date)
+        return await _holidays.Find(h => h.DateUtc >= startDateUtc && h.DateUtc <= endDateUtc && h.IsActive)
+                              .SortBy(h => h.DateUtc)
                               .ToListAsync();
     }
 
     public async Task<List<Holiday>> GetHolidaysByMonthAsync(int year, int month)
     {
-        var startDate = new DateTime(year, month, 1);
-        var endDate = startDate.AddMonths(1).AddDays(-1);
+        var startDateUtc = DateTimeUtilityService.ToUtcDate(new DateTime(year, month, 1));
+        var endDateUtc = DateTimeUtilityService.ToUtc(startDateUtc.AddMonths(1).AddDays(-1));
         
-        return await _holidays.Find(h => h.Date >= startDate && h.Date <= endDate && h.IsActive)
-                              .SortBy(h => h.Date)
+        return await _holidays.Find(h => h.DateUtc >= startDateUtc && h.DateUtc <= endDateUtc && h.IsActive)
+                              .SortBy(h => h.DateUtc)
                               .ToListAsync();
     }
 
     public async Task<Holiday> CreateAsync(Holiday holiday)
     {
-        holiday.CreatedAt = DateTime.UtcNow;
+        holiday.CreatedAtUtc = DateTime.UtcNow;
         await _holidays.InsertOneAsync(holiday);
         return holiday;
     }
 
     public async Task UpdateAsync(string id, Holiday holiday)
     {
-        holiday.UpdatedAt = DateTime.UtcNow;
+        holiday.UpdatedAtUtc = DateTime.UtcNow;
         await _holidays.ReplaceOneAsync(h => h.Id == id, holiday);
     }
 

@@ -51,14 +51,14 @@ namespace LMS.Web.Services
 
         public async Task CreateAsync(EmployeeProjectDetails employeeProjectDetails)
         {
-            employeeProjectDetails.CreatedDate = DateTime.Now;
-            employeeProjectDetails.UpdatedDate = DateTime.Now;
+            employeeProjectDetails.CreatedDateUtc = DateTime.UtcNow;
+            employeeProjectDetails.UpdatedDateUtc = DateTime.UtcNow;
             await _employeeProjectDetails.InsertOneAsync(employeeProjectDetails);
         }
 
         public async Task UpdateAsync(string id, EmployeeProjectDetails employeeProjectDetails)
         {
-            employeeProjectDetails.UpdatedDate = DateTime.Now;
+            employeeProjectDetails.UpdatedDateUtc = DateTime.UtcNow;
             await _employeeProjectDetails.ReplaceOneAsync(x => x.Id == id, employeeProjectDetails);
         }
 
@@ -66,7 +66,7 @@ namespace LMS.Web.Services
         {
             var update = Builders<EmployeeProjectDetails>.Update
                 .Set(x => x.IsActive, false)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employeeProjectDetails.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -95,8 +95,8 @@ namespace LMS.Web.Services
             var filter = Builders<EmployeeProjectDetails>.Filter.And(
                 Builders<EmployeeProjectDetails>.Filter.Eq(x => x.IsActive, true),
                 Builders<EmployeeProjectDetails>.Filter.Or(
-                    Builders<EmployeeProjectDetails>.Filter.Eq(x => x.EndDate, null),
-                    Builders<EmployeeProjectDetails>.Filter.Gte(x => x.EndDate, DateTime.Today)
+                    Builders<EmployeeProjectDetails>.Filter.Eq(x => x.EndDateUtc, null),
+                    Builders<EmployeeProjectDetails>.Filter.Gte(x => x.EndDateUtc, DateTime.Today)
                 )
             );
 

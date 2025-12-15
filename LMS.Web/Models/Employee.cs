@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using LMS.Web.Services;
 
 namespace LMS.Web.Models
 {
@@ -37,7 +38,16 @@ namespace LMS.Web.Models
 
         [Display(Name = "Date of Joining")]
         [DataType(DataType.Date)]
-        public DateTime DateOfJoining { get; set; } = DateTime.Now;
+        [BsonElement("DateOfJoining")]
+        public DateTime DateOfJoiningUtc { get; set; } = DateTimeUtilityService.UtcToday;
+
+        [BsonIgnore]
+        [Display(Name = "Date of Joining")]
+        public DateTime DateOfJoining
+        {
+            get => DateTimeUtilityService.ToLocalDate(DateOfJoiningUtc);
+            set => DateOfJoiningUtc = DateTimeUtilityService.ToUtcDate(value);
+        }
 
         [Display(Name = "Manager ID")]
         public string ManagerId { get; set; } = string.Empty;
@@ -46,10 +56,27 @@ namespace LMS.Web.Models
         public bool IsActive { get; set; } = true;
 
         [Display(Name = "Created Date")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        [BsonElement("CreatedDate")]
+        public DateTime CreatedDateUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        [Display(Name = "Created Date")]
+        public DateTime CreatedDate
+        {
+            get => DateTimeUtilityService.ToLocal(CreatedDateUtc);
+        }
 
         [Display(Name = "Updated Date")]
-        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+        [BsonElement("UpdatedDate")]
+        public DateTime? UpdatedDateUtc { get; set; }
+
+        [BsonIgnore]
+        [Display(Name = "Updated Date")]
+        public DateTime? UpdatedDate
+        {
+            get => UpdatedDateUtc.HasValue ? DateTimeUtilityService.ToLocal(UpdatedDateUtc.Value) : null;
+            set => UpdatedDateUtc = value.HasValue ? DateTimeUtilityService.ToUtc(value.Value) : null;
+        }
 
         [Display(Name = "Full Name")]
         public string FullName => $"{FirstName} {LastName}";

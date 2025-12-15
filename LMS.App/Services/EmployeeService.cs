@@ -48,14 +48,14 @@ namespace LMS.App.Services
 
         public async Task CreateAsync(Employee employee)
         {
-            employee.CreatedDate = DateTime.Now;
-            employee.UpdatedDate = DateTime.Now;
+            employee.CreatedDateUtc = DateTime.UtcNow;
+            employee.UpdatedDateUtc = DateTime.UtcNow;
             await _employees.InsertOneAsync(employee);
         }
 
         public async Task UpdateAsync(string id, Employee employee)
         {
-            employee.UpdatedDate = DateTime.Now;
+            employee.UpdatedDateUtc = DateTime.UtcNow;
             await _employees.ReplaceOneAsync(x => x.Id == id, employee);
         }
 
@@ -63,7 +63,7 @@ namespace LMS.App.Services
         {
             var update = Builders<Employee>.Update
                 .Set(x => x.IsActive, false)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employees.UpdateOneAsync(x => x.Id == id, update);
         }

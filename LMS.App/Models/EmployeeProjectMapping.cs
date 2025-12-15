@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using LMS.App.Services;
 
 namespace LMS.App.Models
 {
@@ -27,19 +28,46 @@ namespace LMS.App.Models
         public int AllocationPercentage { get; set; } = 100;
 
         [BsonElement("startDate")]
-        public DateTime StartDate { get; set; } = DateTime.Today;
+        public DateTime StartDateUtc { get; set; } = DateTimeUtilityService.UtcToday;
+
+        [BsonIgnore]
+        public DateTime StartDate
+        {
+            get => DateTimeUtilityService.ToLocalDate(StartDateUtc);
+            set => StartDateUtc = DateTimeUtilityService.ToUtcDate(value);
+        }
 
         [BsonElement("endDate")]
-        public DateTime? EndDate { get; set; }
+        public DateTime? EndDateUtc { get; set; }
+
+        [BsonIgnore]
+        public DateTime? EndDate
+        {
+            get => EndDateUtc.HasValue ? DateTimeUtilityService.ToLocalDate(EndDateUtc.Value) : null;
+            set => EndDateUtc = value.HasValue ? DateTimeUtilityService.ToUtcDate(value.Value) : null;
+        }
 
         [BsonElement("isActive")]
         public bool IsActive { get; set; } = true;
 
         [BsonElement("createdAt")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        public DateTime CreatedAt
+        {
+            get => DateTimeUtilityService.ToLocal(CreatedAtUtc);
+        }
 
         [BsonElement("updatedAt")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        public DateTime UpdatedAt
+        {
+            get => DateTimeUtilityService.ToLocal(UpdatedAtUtc);
+            set => UpdatedAtUtc = DateTimeUtilityService.ToUtc(value);
+        }
 
         // Navigation properties (not stored in MongoDB)
         [BsonIgnore]

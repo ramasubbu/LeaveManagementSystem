@@ -19,7 +19,7 @@ namespace LMS.Web.Services
 
         public async Task<List<EmployeeLeaveDetails>> GetAllAsync()
         {
-            var leaveDetails = await _employeeLeaveDetails.Find(x => x.IsActive).SortByDescending(x => x.AppliedDate).ToListAsync();
+            var leaveDetails = await _employeeLeaveDetails.Find(x => x.IsActive).SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             // Populate employee information
             foreach (var detail in leaveDetails)
@@ -45,7 +45,7 @@ namespace LMS.Web.Services
         public async Task<List<EmployeeLeaveDetails>> GetByEmployeeIdAsync(string employeeId)
         {
             var leaveDetails = await _employeeLeaveDetails.Find(x => x.EmployeeId == employeeId && x.IsActive)
-                .SortByDescending(x => x.AppliedDate).ToListAsync();
+                .SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             foreach (var detail in leaveDetails)
             {
@@ -58,7 +58,7 @@ namespace LMS.Web.Services
         public async Task<List<EmployeeLeaveDetails>> GetByStatusAsync(LeaveStatus status)
         {
             var leaveDetails = await _employeeLeaveDetails.Find(x => x.Status == status && x.IsActive)
-                .SortByDescending(x => x.AppliedDate).ToListAsync();
+                .SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             foreach (var detail in leaveDetails)
             {
@@ -74,21 +74,21 @@ namespace LMS.Web.Services
                 Builders<EmployeeLeaveDetails>.Filter.Eq(x => x.IsActive, true),
                 Builders<EmployeeLeaveDetails>.Filter.Or(
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, endDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDateUtc, endDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, endDate)
                     )
                 )
             );
 
-            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDate).ToListAsync();
+            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             foreach (var detail in leaveDetails)
             {
@@ -108,7 +108,7 @@ namespace LMS.Web.Services
                 )
             );
 
-            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDate).ToListAsync();
+            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             foreach (var detail in leaveDetails)
             {
@@ -120,15 +120,15 @@ namespace LMS.Web.Services
 
         public async Task CreateAsync(EmployeeLeaveDetails employeeLeaveDetails)
         {
-            employeeLeaveDetails.CreatedDate = DateTime.Now;
-            employeeLeaveDetails.UpdatedDate = DateTime.Now;
-            employeeLeaveDetails.AppliedDate = DateTime.Now;
+            employeeLeaveDetails.CreatedDateUtc = DateTime.UtcNow;
+            employeeLeaveDetails.UpdatedDateUtc = DateTime.UtcNow;
+            employeeLeaveDetails.AppliedDateUtc = DateTime.UtcNow;
             await _employeeLeaveDetails.InsertOneAsync(employeeLeaveDetails);
         }
 
         public async Task UpdateAsync(string id, EmployeeLeaveDetails employeeLeaveDetails)
         {
-            employeeLeaveDetails.UpdatedDate = DateTime.Now;
+            employeeLeaveDetails.UpdatedDateUtc = DateTime.UtcNow;
             await _employeeLeaveDetails.ReplaceOneAsync(x => x.Id == id, employeeLeaveDetails);
         }
 
@@ -136,7 +136,7 @@ namespace LMS.Web.Services
         {
             var update = Builders<EmployeeLeaveDetails>.Update
                 .Set(x => x.IsActive, false)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employeeLeaveDetails.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -146,9 +146,9 @@ namespace LMS.Web.Services
             var update = Builders<EmployeeLeaveDetails>.Update
                 .Set(x => x.Status, LeaveStatus.Approved)
                 .Set(x => x.ApprovedBy, approvedBy)
-                .Set(x => x.ApprovedDate, DateTime.Now)
+                .Set(x => x.ApprovedDateUtc, DateTime.UtcNow)
                 .Set(x => x.ApprovalComments, approvalComments)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employeeLeaveDetails.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -158,9 +158,9 @@ namespace LMS.Web.Services
             var update = Builders<EmployeeLeaveDetails>.Update
                 .Set(x => x.Status, LeaveStatus.Rejected)
                 .Set(x => x.ApprovedBy, rejectedBy)
-                .Set(x => x.ApprovedDate, DateTime.Now)
+                .Set(x => x.ApprovedDateUtc, DateTime.UtcNow)
                 .Set(x => x.ApprovalComments, rejectionComments)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employeeLeaveDetails.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -169,7 +169,7 @@ namespace LMS.Web.Services
         {
             var update = Builders<EmployeeLeaveDetails>.Update
                 .Set(x => x.Status, LeaveStatus.Cancelled)
-                .Set(x => x.UpdatedDate, DateTime.Now);
+                .Set(x => x.UpdatedDateUtc, DateTime.UtcNow);
             
             await _employeeLeaveDetails.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -182,16 +182,16 @@ namespace LMS.Web.Services
                 Builders<EmployeeLeaveDetails>.Filter.In(x => x.Status, new[] { LeaveStatus.Approved, LeaveStatus.Pending }),
                 Builders<EmployeeLeaveDetails>.Filter.Or(
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, startDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, startDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, endDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, endDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, endDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDateUtc, endDate)
                     )
                 )
             );
@@ -218,8 +218,8 @@ namespace LMS.Web.Services
                 filterBuilder.Eq(x => x.EmployeeId, employeeId),
                 filterBuilder.Eq(x => x.IsActive, true),
                 filterBuilder.Eq(x => x.Status, LeaveStatus.Approved),
-                filterBuilder.Gte(x => x.StartDate, startOfYear),
-                filterBuilder.Lte(x => x.EndDate, endOfYear)
+                filterBuilder.Gte(x => x.StartDateUtc, startOfYear),
+                filterBuilder.Lte(x => x.EndDateUtc, endOfYear)
             );
 
             if (leaveType.HasValue)
@@ -238,21 +238,21 @@ namespace LMS.Web.Services
                 Builders<EmployeeLeaveDetails>.Filter.Eq(x => x.IsActive, true),
                 Builders<EmployeeLeaveDetails>.Filter.Or(
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, endDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.EndDateUtc, endDate)
                     ),
                     Builders<EmployeeLeaveDetails>.Filter.And(
-                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDate, startDate),
-                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDate, endDate)
+                        Builders<EmployeeLeaveDetails>.Filter.Lte(x => x.StartDateUtc, startDate),
+                        Builders<EmployeeLeaveDetails>.Filter.Gte(x => x.EndDateUtc, endDate)
                     )
                 )
             );
 
-            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDate).ToListAsync();
+            var leaveDetails = await _employeeLeaveDetails.Find(filter).SortByDescending(x => x.AppliedDateUtc).ToListAsync();
             
             foreach (var detail in leaveDetails)
             {

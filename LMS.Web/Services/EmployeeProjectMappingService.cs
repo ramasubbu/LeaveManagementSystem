@@ -95,14 +95,14 @@ namespace LMS.Web.Services
 
         public async Task CreateAsync(EmployeeProjectMapping mapping)
         {
-            mapping.CreatedAt = DateTime.UtcNow;
-            mapping.UpdatedAt = DateTime.UtcNow;
+            mapping.CreatedAtUtc = DateTime.UtcNow;
+            mapping.UpdatedAtUtc = DateTime.UtcNow;
             await _mappingCollection.InsertOneAsync(mapping);
         }
 
         public async Task UpdateAsync(string id, EmployeeProjectMapping mapping)
         {
-            mapping.UpdatedAt = DateTime.UtcNow;
+            mapping.UpdatedAtUtc = DateTime.UtcNow;
             await _mappingCollection.ReplaceOneAsync(x => x.Id == id, mapping);
         }
 

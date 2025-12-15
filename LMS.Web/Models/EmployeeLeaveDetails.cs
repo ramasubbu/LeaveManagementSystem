@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using LMS.Web.Services;
 
 namespace LMS.Web.Models
 {
@@ -51,12 +52,30 @@ namespace LMS.Web.Models
         [Required(ErrorMessage = "Start Date is required")]
         [Display(Name = "Start Date")]
         [DataType(DataType.Date)]
-        public DateTime StartDate { get; set; } = DateTime.Now;
+        [BsonElement("StartDate")]
+        public DateTime StartDateUtc { get; set; } = DateTimeUtilityService.UtcToday;
+
+        [BsonIgnore]
+        [Display(Name = "Start Date")]
+        public DateTime StartDate
+        {
+            get => DateTimeUtilityService.ToLocalDate(StartDateUtc);
+            set => StartDateUtc = DateTimeUtilityService.ToUtcDate(value);
+        }
 
         [Required(ErrorMessage = "End Date is required")]
         [Display(Name = "End Date")]
         [DataType(DataType.Date)]
-        public DateTime EndDate { get; set; } = DateTime.Now;
+        [BsonElement("EndDate")]
+        public DateTime EndDateUtc { get; set; } = DateTimeUtilityService.UtcToday;
+
+        [BsonIgnore]
+        [Display(Name = "End Date")]
+        public DateTime EndDate
+        {
+            get => DateTimeUtilityService.ToLocalDate(EndDateUtc);
+            set => EndDateUtc = DateTimeUtilityService.ToUtcDate(value);
+        }
 
         [Required(ErrorMessage = "Reason is required")]
         [Display(Name = "Reason for Leave")]
@@ -66,19 +85,36 @@ namespace LMS.Web.Models
         public string Comments { get; set; } = string.Empty;
 
         [Display(Name = "Total Days")]
-        public int TotalDays => (EndDate - StartDate).Days + 1;
+        public int TotalDays => (EndDateUtc - StartDateUtc).Days + 1;
 
         [Display(Name = "Leave Status")]
         public LeaveStatus Status { get; set; } = LeaveStatus.Pending;
 
         [Display(Name = "Applied Date")]
-        public DateTime AppliedDate { get; set; } = DateTime.Now;
+        [BsonElement("AppliedDate")]
+        public DateTime AppliedDateUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        [Display(Name = "Applied Date")]
+        public DateTime AppliedDate
+        {
+            get => DateTimeUtilityService.ToLocal(AppliedDateUtc);
+        }
 
         [Display(Name = "Approved/Rejected By")]
         public string? ApprovedBy { get; set; }
 
         [Display(Name = "Approved/Rejected Date")]
-        public DateTime? ApprovedDate { get; set; }
+        [BsonElement("ApprovedDate")]
+        public DateTime? ApprovedDateUtc { get; set; }
+
+        [BsonIgnore]
+        [Display(Name = "Approved/Rejected Date")]
+        public DateTime? ApprovedDate
+        {
+            get => ApprovedDateUtc.HasValue ? DateTimeUtilityService.ToLocal(ApprovedDateUtc.Value) : null;
+            set => ApprovedDateUtc = value.HasValue ? DateTimeUtilityService.ToUtc(value.Value) : null;
+        }
 
         [Display(Name = "Approval Comments")]
         public string? ApprovalComments { get; set; }
@@ -87,10 +123,27 @@ namespace LMS.Web.Models
         public bool IsActive { get; set; } = true;
 
         [Display(Name = "Created Date")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        [BsonElement("CreatedDate")]
+        public DateTime CreatedDateUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        [Display(Name = "Created Date")]
+        public DateTime CreatedDate
+        {
+            get => DateTimeUtilityService.ToLocal(CreatedDateUtc);
+        }
 
         [Display(Name = "Updated Date")]
-        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+        [BsonElement("UpdatedDate")]
+        public DateTime UpdatedDateUtc { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnore]
+        [Display(Name = "Updated Date")]
+        public DateTime UpdatedDate
+        {
+            get => DateTimeUtilityService.ToLocal(UpdatedDateUtc);
+            set => UpdatedDateUtc = DateTimeUtilityService.ToUtc(value);
+        }
 
         // Navigation property for Employee (will be populated manually)
         [BsonIgnore]

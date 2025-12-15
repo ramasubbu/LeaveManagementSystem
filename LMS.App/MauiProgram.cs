@@ -38,9 +38,14 @@ namespace LMS.App
             builder.Services.AddScoped<AuthenticationService>();
             builder.Services.AddScoped<HolidayService>();
             builder.Services.AddScoped<WorkHoursService>();
+            
+            // Add DateTime helper service for UTC/Local timezone handling
+            builder.Services.AddScoped<DateTimeHelperService>();
+
+            builder.Services.AddScoped<DateTimeUtilityService>();
 
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 

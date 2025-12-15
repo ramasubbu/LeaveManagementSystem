@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using LMS.App.Services;
 
 namespace LMS.App.Models;
 
@@ -15,7 +16,16 @@ public class Holiday
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Holiday date is required")]
-    public DateTime Date { get; set; }
+    [BsonElement("Date")]
+    public DateTime DateUtc { get; set; }
+
+    [BsonIgnore]
+    [Required(ErrorMessage = "Holiday date is required")]
+    public DateTime Date
+    {
+        get => DateTimeUtilityService.ToLocalDate(DateUtc);
+        set => DateUtc = DateTimeUtilityService.ToUtcDate(value);
+    }
 
     [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
     public string? Description { get; set; }
@@ -23,6 +33,22 @@ public class Holiday
     [Required]
     public bool IsActive { get; set; } = true;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
+    [BsonElement("CreatedAt")]
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    [BsonIgnore]
+    public DateTime CreatedAt
+    {
+        get => DateTimeUtilityService.ToLocal(CreatedAtUtc);
+    }
+
+    [BsonElement("UpdatedAt")]
+    public DateTime? UpdatedAtUtc { get; set; }
+
+    [BsonIgnore]
+    public DateTime? UpdatedAt
+    {
+        get => UpdatedAtUtc.HasValue ? DateTimeUtilityService.ToLocal(UpdatedAtUtc.Value) : null;
+        set => UpdatedAtUtc = value.HasValue ? DateTimeUtilityService.ToUtc(value.Value) : null;
+    }
 }

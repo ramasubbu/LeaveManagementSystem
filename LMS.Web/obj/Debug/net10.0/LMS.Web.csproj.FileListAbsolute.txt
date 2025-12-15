@@ -1,0 +1,12 @@
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\EmbeddedAttribute.cs
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\ValidatableTypeAttribute.cs
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.csproj.AssemblyReference.cache
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\rpswa.dswa.cache.json
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.GeneratedMSBuildEditorConfig.editorconfig
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.AssemblyInfoInputs.cache
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.AssemblyInfo.cs
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.csproj.CoreCompileInputs.cache
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.MvcApplicationPartsAssemblyInfo.cache
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.RazorAssemblyInfo.cache
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.RazorAssemblyInfo.cs
+E:\Projects\Karsh\LeaveManagementSystem\LeaveManagementPortal\obj\Debug\net10.0\LMS.Web.sourcelink.json

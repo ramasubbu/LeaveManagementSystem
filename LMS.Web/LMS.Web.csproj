@@ -10,8 +10,4 @@
     <PackageReference Include="MongoDB.Driver" Version="3.5.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LMS.Shared\LMS.Shared.csproj" />
-  </ItemGroup>
-
 </Project>

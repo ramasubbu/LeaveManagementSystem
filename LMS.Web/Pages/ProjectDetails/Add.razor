@@ -130,12 +130,12 @@
         try
         {
             await ProjectDetailsService.CreateAsync(projectDetail);
-            await JSRuntime.InvokeVoidAsync("alert", "Project created successfully!");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Project created successfully!", "success");
             Navigation.NavigateTo("/project-details");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error creating project: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error creating project: {ex.Message}", "error");
         }
         finally
         {

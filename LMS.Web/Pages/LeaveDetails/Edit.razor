@@ -216,7 +216,7 @@
         
         if (totalDays < 1)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Please select valid dates. End date must be equal to or after start date.");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Please select valid dates. End date must be equal to or after start date.", "warning");
             return;
         }
 
@@ -252,12 +252,12 @@
             }
 
             await LeaveDetailsService.UpdateAsync(Id, leaveDetail);
-            await JSRuntime.InvokeVoidAsync("alert", "Leave application updated successfully!");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Leave application updated successfully!", "success");
             Navigation.NavigateTo("/leave-details");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error updating leave application: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error updating leave application: {ex.Message}", "error");
         }
         finally
         {

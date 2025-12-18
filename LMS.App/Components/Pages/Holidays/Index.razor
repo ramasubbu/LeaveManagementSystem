@@ -255,7 +255,7 @@
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Error deleting holiday. Please try again.");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Error deleting holiday. Please try again.", "error");
             }
         }
     }

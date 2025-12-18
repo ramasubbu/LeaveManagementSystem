@@ -237,12 +237,12 @@
             {
                 await LeaveDetailsService.ApproveLeaveAsync(id, "Admin", comments);
                 leaveDetail = await LeaveDetailsService.GetByIdAsync(Id); // Refresh data
-                await JSRuntime.InvokeVoidAsync("alert", "Leave approved successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Leave approved successfully!", "success");
                 StateHasChanged();
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error approving leave: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error approving leave: {ex.Message}", "error");
             }
         }
     }
@@ -256,12 +256,12 @@
             {
                 await LeaveDetailsService.RejectLeaveAsync(id, "Admin", comments);
                 leaveDetail = await LeaveDetailsService.GetByIdAsync(Id); // Refresh data
-                await JSRuntime.InvokeVoidAsync("alert", "Leave rejected successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Leave rejected successfully!", "success");
                 StateHasChanged();
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error rejecting leave: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error rejecting leave: {ex.Message}", "error");
             }
         }
     }

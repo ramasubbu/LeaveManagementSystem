@@ -185,7 +185,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error searching mappings: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error searching mappings: {ex.Message}", "error");
         }
         finally
         {
@@ -212,12 +212,12 @@
             try
             {
                 await MappingService.RemoveAsync(mapping.Id!);
-                await JSRuntime.InvokeVoidAsync("alert", "Mapping deleted successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Mapping deleted successfully!", "success");
                 await LoadMappings();
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting mapping: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error deleting mapping: {ex.Message}", "error");
             }
         }
     }

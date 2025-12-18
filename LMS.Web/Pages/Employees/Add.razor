@@ -180,17 +180,17 @@
             var isUnique = await EmployeeService.IsEmployeeCodeUniqueAsync(employee.EmployeeCode);
             if (!isUnique)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Employee code already exists. Please use a different code.");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Employee code already exists. Please use a different code.", "warning");
                 return;
             }
 
             await EmployeeService.CreateAsync(employee);
-            await JSRuntime.InvokeVoidAsync("alert", "Employee created successfully!");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Employee created successfully!", "success");
             Navigation.NavigateTo("/employees");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error creating employee: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error creating employee: {ex.Message}", "error");
         }
         finally
         {

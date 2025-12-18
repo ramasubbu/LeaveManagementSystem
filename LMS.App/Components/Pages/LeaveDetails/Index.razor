@@ -212,7 +212,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error filtering leaves: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error filtering leaves: {ex.Message}", "error");
         }
         finally
         {
@@ -235,7 +235,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error searching leaves: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error searching leaves: {ex.Message}", "error");
         }
         finally
         {
@@ -275,11 +275,11 @@
             {
                 await LeaveDetailsService.ApproveLeaveAsync(id, "Admin", comments);
                 await LoadLeaveDetails();
-                await JSRuntime.InvokeVoidAsync("alert", $"Leave approved for {employeeName}!");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Leave approved for {employeeName}!", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error approving leave: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error approving leave: {ex.Message}", "error");
             }
         }
     }
@@ -293,11 +293,11 @@
             {
                 await LeaveDetailsService.RejectLeaveAsync(id, "Admin", comments);
                 await LoadLeaveDetails();
-                await JSRuntime.InvokeVoidAsync("alert", $"Leave rejected for {employeeName}!");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Leave rejected for {employeeName}!", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error rejecting leave: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error rejecting leave: {ex.Message}", "error");
             }
         }
     }
@@ -311,11 +311,11 @@
             {
                 await LeaveDetailsService.DeleteAsync(id);
                 await LoadLeaveDetails();
-                await JSRuntime.InvokeVoidAsync("alert", "Leave record deleted successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Leave record deleted successfully!", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting leave record: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error deleting leave record: {ex.Message}", "error");
             }
         }
     }

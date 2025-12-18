@@ -274,11 +274,11 @@
             {
                 await EmployeeService.DeleteAsync(id);
                 await LoadEmployees();
-                await JSRuntime.InvokeVoidAsync("alert", "Employee deleted successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Employee deleted successfully!", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting employee: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error deleting employee: {ex.Message}", "error");
             }
         }
     }

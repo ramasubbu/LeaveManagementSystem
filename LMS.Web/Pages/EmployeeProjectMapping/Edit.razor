@@ -183,17 +183,17 @@
             
             if (isAlreadyAssigned)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "This employee is already assigned to the selected project.");
+                await JSRuntime.InvokeVoidAsync("toast.show", "This employee is already assigned to the selected project.", "warning");
                 return;
             }
 
             await MappingService.UpdateAsync(Id, mapping);
-            await JSRuntime.InvokeVoidAsync("alert", "Employee project mapping updated successfully!");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Employee project mapping updated successfully!", "success");
             Navigation.NavigateTo("/employee-project-mapping");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error updating mapping: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error updating mapping: {ex.Message}", "error");
         }
         finally
         {

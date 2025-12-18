@@ -156,12 +156,12 @@
         try
         {
             await ProjectDetailsService.UpdateAsync(Id, projectDetail);
-            await JSRuntime.InvokeVoidAsync("alert", "Project updated successfully!");
+            await JSRuntime.InvokeVoidAsync("toast.show", "Project updated successfully!", "success");
             Navigation.NavigateTo("/project-details");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error updating project assignment: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error updating project assignment: {ex.Message}", "error");
         }
         finally
         {

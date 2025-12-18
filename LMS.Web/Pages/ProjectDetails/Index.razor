@@ -183,7 +183,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error searching projects: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("toast.show", $"Error searching projects: {ex.Message}", "error");
         }
         finally
         {
@@ -223,11 +223,11 @@
             {
                 await ProjectDetailsService.DeleteAsync(id);
                 await LoadProjectDetails();
-                await JSRuntime.InvokeVoidAsync("alert", "Project assignment deleted successfully!");
+                await JSRuntime.InvokeVoidAsync("toast.show", "Project assignment deleted successfully!", "success");
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting project assignment: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("toast.show", $"Error deleting project assignment: {ex.Message}", "error");
             }
         }
     }

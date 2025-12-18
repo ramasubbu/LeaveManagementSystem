@@ -61,6 +61,21 @@
                                                 <a href="mailto:@employee.Email">@employee.Email</a>
                                             </dd>
 
+                                            <dt class="col-sm-4">SLB Email ID:</dt>
+                                            <dd class="col-sm-8">
+                                                @if (!string.IsNullOrWhiteSpace(employee.SlbEmailId))
+                                                {
+                                                    <a href="mailto:@employee.SlbEmailId">@employee.SlbEmailId</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not provided</span>
+                                                }
+                                            </dd>
+
+                                            <dt class="col-sm-4">Team Location:</dt>
+                                            <dd class="col-sm-8">@employee.IndiaTeam</dd>
+
                                             <dt class="col-sm-4">Phone:</dt>
                                             <dd class="col-sm-8">
                                                 @if (!string.IsNullOrEmpty(employee.Phone))

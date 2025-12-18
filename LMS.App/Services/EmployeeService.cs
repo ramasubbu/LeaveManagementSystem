@@ -39,6 +39,7 @@ namespace LMS.App.Services
                     Builders<Employee>.Filter.Regex(x => x.LastName, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
                     Builders<Employee>.Filter.Regex(x => x.EmployeeCode, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
                     Builders<Employee>.Filter.Regex(x => x.Email, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
+                    Builders<Employee>.Filter.Regex(x => x.SlbEmailId, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
                     Builders<Employee>.Filter.Regex(x => x.Department, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i"))
                 )
             );

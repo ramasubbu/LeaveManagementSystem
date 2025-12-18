@@ -23,6 +23,22 @@
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label d-block">Team Location <span class="text-danger">*</span></label>
+                                    <InputRadioGroup @bind-Value="employee.IndiaTeam">
+                                        <div class="form-check form-check-inline">
+                                            <InputRadio class="form-check-input" Value="TeamRegion.India" />
+                                            <label class="form-check-label">India</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <InputRadio class="form-check-input" Value="TeamRegion.Pakistan" />
+                                            <label class="form-check-label">Pakistan</label>
+                                        </div>
+                                    </InputRadioGroup>
+                                    <ValidationMessage For="@(() => employee.IndiaTeam)" />
+                                </div>
+                            </div>
                     }
                     else if (employee == null)
                     {
@@ -46,6 +62,14 @@
                                     <label for="email" class="form-label">Email</label>
                                     <InputText id="email" class="form-control" type="email" @bind-Value="employee.Email" />
                                     <ValidationMessage For="@(() => employee.Email)" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="slbEmailId" class="form-label">SLB Email ID</label>
+                                    <InputText id="slbEmailId" class="form-control" type="email" @bind-Value="employee.SlbEmailId" />
+                                    <ValidationMessage For="@(() => employee.SlbEmailId)" />
                                 </div>
                             </div>
 

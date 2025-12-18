@@ -35,6 +35,31 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label for="slbEmailId" class="form-label">SLB Email ID</label>
+                                <InputText id="slbEmailId" class="form-control" type="email" @bind-Value="employee.SlbEmailId" />
+                                <ValidationMessage For="@(() => employee.SlbEmailId)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Team Location <span class="text-danger">*</span></label>
+                                <InputRadioGroup @bind-Value="employee.IndiaTeam">
+                                    <div class="form-check form-check-inline">
+                                        <InputRadio class="form-check-input" Value="TeamRegion.India" />
+                                        <label class="form-check-label">India</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <InputRadio class="form-check-input" Value="TeamRegion.Pakistan" />
+                                        <label class="form-check-label">Pakistan</label>
+                                    </div>
+                                </InputRadioGroup>
+                                <ValidationMessage For="@(() => employee.IndiaTeam)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="firstName" class="form-label">First Name</label>
                                 <InputText id="firstName" class="form-control" @bind-Value="employee.FirstName" />
                                 <ValidationMessage For="@(() => employee.FirstName)" />

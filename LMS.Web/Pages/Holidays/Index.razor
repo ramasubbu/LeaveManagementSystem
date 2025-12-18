@@ -42,11 +42,21 @@
                 }
             </select>
         </div>
-        <div class="col-md-2">
-            <select class="form-select" @bind="showActiveOnly" @bind:after="LoadHolidays">
-                <option value="true">Active Only</option>
-                <option value="false">All Holidays</option>
-            </select>
+        <div class="col-md-3">
+            <div class="list-group" role="listbox" aria-label="Holiday Status Filter">
+                <button type="button"
+                        class="list-group-item list-group-item-action @(showActiveOnly ? "active" : "")"
+                        aria-selected="@(showActiveOnly ? "true" : "false")"
+                        @onclick="() => SetActiveFilter(true)">
+                    <i class="fas fa-check-circle me-2"></i> Active Only
+                </button>
+                <button type="button"
+                        class="list-group-item list-group-item-action @(!showActiveOnly ? "active" : "")"
+                        aria-selected="@(!showActiveOnly ? "true" : "false")"
+                        @onclick="() => SetActiveFilter(false)">
+                    <i class="fas fa-list me-2"></i> All Holidays
+                </button>
+            </div>
         </div>
     </div>
 
@@ -222,6 +232,13 @@
     private void OnSearchInput(ChangeEventArgs e)
     {
         searchTerm = e.Value?.ToString() ?? string.Empty;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void SetActiveFilter(bool value)
+    {
+        showActiveOnly = value;
         ApplyFilters();
         StateHasChanged();
     }

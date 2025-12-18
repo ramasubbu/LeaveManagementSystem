@@ -74,6 +74,8 @@
                                         <th>Employee Code</th>
                                         <th>Name</th>
                                         <th>Email</th>
+                                        <th>SLB Email ID</th>
+                                        <th>Team Location</th>
                                         <th>Department</th>
                                         <th>Designation</th>
                                         <th>Date of Joining</th>
@@ -87,6 +89,17 @@
                                             <td>@employee.EmployeeCode</td>
                                             <td>@employee.FullName</td>
                                             <td>@employee.Email</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(employee.SlbEmailId))
+                                                {
+                                                    @employee.SlbEmailId
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>@employee.IndiaTeam</td>
                                             <td>@employee.Department</td>
                                             <td>@employee.Designation</td>
                                             <td>@employee.DateOfJoining.ToString("yyyy-MM-dd")</td>
@@ -198,6 +211,7 @@
                     e.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                     e.EmployeeCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                     e.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(e.SlbEmailId) && e.SlbEmailId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
                     e.Department.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                 );
             }

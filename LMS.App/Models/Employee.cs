@@ -30,6 +30,15 @@ namespace LMS.App.Models
         [Phone(ErrorMessage = "Invalid phone number format")]
         public string Phone { get; set; } = string.Empty;
 
+        [Display(Name = "SLB Email ID")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string SlbEmailId { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Team Location is required")]
+        [Display(Name = "Team Location")]
+        [BsonRepresentation(BsonType.String)]
+        public TeamRegion IndiaTeam { get; set; }
+
         [Required(ErrorMessage = "Department is required")]
         public string Department { get; set; } = string.Empty;
 

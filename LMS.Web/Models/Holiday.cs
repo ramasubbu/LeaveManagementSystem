@@ -33,6 +33,11 @@ public class Holiday
     [Required]
     public bool IsActive { get; set; } = true;
 
+    [Required(ErrorMessage = "Team Location is required")]
+    [Display(Name = "Team Location")]
+    [BsonRepresentation(BsonType.String)]
+    public TeamRegion IndiaTeam { get; set; }
+
     [BsonElement("CreatedAt")]
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 

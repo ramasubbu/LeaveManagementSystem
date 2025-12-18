@@ -77,6 +77,25 @@
                         </div>
 
                         <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Team Location <span class="text-danger">*</span></label>
+                                    <InputRadioGroup @bind-Value="holiday.IndiaTeam">
+                                        <div class="form-check form-check-inline">
+                                            <InputRadio class="form-check-input" Value="TeamRegion.India" />
+                                            <label class="form-check-label">India</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <InputRadio class="form-check-input" Value="TeamRegion.Pakistan" />
+                                            <label class="form-check-label">Pakistan</label>
+                                        </div>
+                                    </InputRadioGroup>
+                                    <ValidationMessage For="@(() => holiday.IndiaTeam)" class="text-danger" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
@@ -167,9 +186,9 @@
             successMessage = string.Empty;
             StateHasChanged();
 
-            // Check for duplicate holidays on the same date
+            // Check for duplicate holidays on the same date for the same team
             var existingHolidays = await HolidayService.GetHolidaysByMonthAsync(holiday.Date.Year, holiday.Date.Month);
-            if (existingHolidays.Any(h => h.Date.Date == holiday.Date.Date))
+            if (existingHolidays.Any(h => h.Date.Date == holiday.Date.Date && h.IndiaTeam == holiday.IndiaTeam))
             {
                 errorMessage = "A holiday already exists on this date.";
                 return;

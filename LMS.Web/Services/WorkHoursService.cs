@@ -7,12 +7,14 @@ public class WorkHoursService
 {
     private readonly HolidayService _holidayService;
     private readonly EmployeeLeaveDetailsService _leaveService;
+    private readonly EmployeeService _employeeService;
     private const int STANDARD_WORK_HOURS_PER_DAY = 8;
 
-    public WorkHoursService(HolidayService holidayService, EmployeeLeaveDetailsService leaveService)
+    public WorkHoursService(HolidayService holidayService, EmployeeLeaveDetailsService leaveService, EmployeeService employeeService)
     {
         _holidayService = holidayService;
         _leaveService = leaveService;
+        _employeeService = employeeService;
     }
 
     public async Task<WorkHoursCalculation> CalculateWorkHoursAsync(string employeeId, int year, int month)
@@ -23,9 +25,15 @@ public class WorkHoursService
         var holidayDays = 0;
         var leaveDays = 0;
 
-        // Get holidays for the month
+        // Get holidays for the month and filter by employee's team region
         var holidays = await _holidayService.GetHolidaysByMonthAsync(year, month);
-        var holidayDates = holidays.Select(h => h.Date.Date).ToHashSet();
+
+        var employee = await _employeeService.GetByIdAsync(employeeId);
+        var holidayDates = (employee == null
+            ? holidays // fallback: if employee not found, consider all
+            : holidays.Where(h => h.IndiaTeam == employee.IndiaTeam))
+            .Select(h => h.Date.Date)
+            .ToHashSet();
 
         // Get leaves for the employee in the month
         var startDate = new DateTime(year, month, 1);
